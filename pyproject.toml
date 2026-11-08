@@ -13,7 +13,7 @@ authors = [{ name = "Obaid Abdullah" }]
 dependencies = ["PyYAML>=6.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = ["pytest>=8", "ruff==0.17.4"]
 
 [project.scripts]
 ghaudit = "ghaudit.cli:main"

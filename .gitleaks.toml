@@ -1,0 +1,15 @@
+# gitleaks settings for this repository (picked up automatically by the Secret scan job).
+# The default rules, except for the fake values that tools/make-secrets-demo-repo.sh plants
+# on purpose to build a training repository (and that tests/test_exposure.py checks for).
+title = "gha-hardening-kit"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fake DEMO ONLY values used by the secrets-history demo"
+regexes = [
+  '''AKIAQZ4DEMONOTREAL7X''',
+  '''demoNotARealWebhookToken00''',
+  '''demo-not-a-real-password''',
+]

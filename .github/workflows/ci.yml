@@ -26,7 +26,7 @@ jobs:
 
   workflow-security:
     name: Workflow security (dogfooding)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -39,7 +39,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install tools
-        run: pip install -e . actionlint-py==1.7.12
+        run: pip install -e . -r .github/requirements-ci.txt
       - name: actionlint
         run: actionlint
       - name: Every action is pinned to a commit SHA
@@ -58,7 +58,7 @@ jobs:
       - name: No exposure to known Actions supply-chain incidents
         run: ghaudit exposure . --no-history --fail-on-exposure
       - name: Upload ghaudit SARIF
-        if: always()
+        if: always() && hashFiles('ghaudit.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: ghaudit.sarif
@@ -66,12 +66,13 @@ jobs:
       - name: zizmor
         uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
         with:
+          version: "1.32.0"   # pinned like the other CI tools
           inputs: .github
           min-severity: low
 
   secrets:
     name: Secret scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -84,7 +85,7 @@ jobs:
 
   terraform:
     name: Terraform module
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
