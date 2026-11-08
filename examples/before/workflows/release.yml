@@ -1,0 +1,18 @@
+# BEFORE: release pipeline on a self-hosted runner that also builds pull requests,
+# and hands every secret to a third-party reusable workflow.
+name: Release
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux]
+    steps:
+      - uses: actions/checkout@v4
+      - run: make build
+  publish:
+    needs: build
+    uses: some-vendor/shared-workflows/.github/workflows/publish.yml@main
+    secrets: inherit

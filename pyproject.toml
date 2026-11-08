@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ghaudit"
+dynamic = ["version"]
+description = "Score GitHub Actions workflows for supply-chain risks (part of gha-hardening-kit)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Obaid Abdullah" }]
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+ghaudit = "ghaudit.cli:main"
+
+[tool.setuptools]
+packages = ["ghaudit"]
+
+[tool.setuptools.dynamic]
+version = { attr = "ghaudit.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

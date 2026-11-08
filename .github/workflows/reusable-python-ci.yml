@@ -1,0 +1,47 @@
+# Reusable, hardened Python CI job. Call it from any repo:
+#   jobs:
+#     test:
+#       uses: ObaidAbdullah16/gha-hardening-kit/.github/workflows/reusable-python-ci.yml@<sha>
+#       with: { python-version: "3.13" }
+name: Reusable Python CI
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.13"
+      working-directory:
+        type: string
+        default: "."
+      install-command:
+        type: string
+        default: pip install -r requirements.txt
+      test-command:
+        type: string
+        default: pytest -q
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: Install
+        env:
+          INSTALL_COMMAND: ${{ inputs.install-command }}
+        run: bash -c "$INSTALL_COMMAND"
+      - name: Test
+        env:
+          TEST_COMMAND: ${{ inputs.test-command }}
+        run: bash -c "$TEST_COMMAND"

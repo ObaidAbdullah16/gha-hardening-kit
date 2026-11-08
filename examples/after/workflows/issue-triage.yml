@@ -1,0 +1,26 @@
+# AFTER: untrusted text goes through env vars / the event payload, never into the script source.
+name: Issue triage
+on:
+  issues:
+    types: [opened]
+
+permissions: {}
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - env:
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          echo "New issue: $TITLE"
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            if (body.includes('bug')) {
+              await github.rest.issues.addLabels({ ...context.repo, issue_number: context.issue.number, labels: ['bug'] });
+            }

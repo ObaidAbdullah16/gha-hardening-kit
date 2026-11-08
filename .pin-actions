@@ -1,0 +1,2 @@
+# Extra files for tools/pin_actions.py to pin (besides .github/workflows)
+examples/after/workflows/*.yml

@@ -1,0 +1,6 @@
+rules:
+  self-repository:
+    # GitHub's new `uses: $/...` syntax (July 2026) is not understood by actionlint 1.7.12 yet,
+    # so local reusable workflows keep the `./` form for now. Revisit when actionlint supports it.
+    ignore:
+      - ci.yml

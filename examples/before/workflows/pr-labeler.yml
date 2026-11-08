@@ -1,0 +1,25 @@
+# BEFORE: runs tests on pull requests from forks "with secrets so coverage upload works".
+# This is the classic "pwn request": any stranger's PR code runs with a write token and secrets.
+name: PR checks
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions: write-all
+
+jobs:
+  test-and-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: npm install && npm test
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Comment
+        run: |
+          echo "Thanks for: ${{ github.event.pull_request.title }}"
+          gh pr comment ${{ github.event.pull_request.number }} --body "Tests passed"
+        env:
+          GH_TOKEN: ${{ github.token }}

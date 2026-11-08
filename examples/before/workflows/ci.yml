@@ -1,0 +1,21 @@
+# BEFORE: a typical CI workflow copied from a blog post years ago.
+# Do not copy this file. See ../../after/workflows/ci.yml for the fixed version.
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install tooling
+        run: curl -sSL https://example.com/install-tools.sh | bash
+      - name: Changed files
+        id: changed
+        uses: tj-actions/changed-files@v45
+      - run: npm ci && npm test
