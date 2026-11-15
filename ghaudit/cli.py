@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import urllib.error
 from pathlib import Path
 
 from . import __version__
@@ -109,6 +110,24 @@ def cmd_rules(_: argparse.Namespace) -> int:
     return 0
 
 
+def github_error(e: urllib.error.HTTPError) -> str:
+    """One readable line for a failed GitHub API call (instead of a Python traceback)."""
+    url = e.geturl() or ""
+    path = url.split("://", 1)[-1].split("/", 1)[-1] if "://" in url else url
+    parts = path.split("?", 1)[0].strip("/").split("/")
+    repo = "/".join(parts[1:3]) if parts[:1] == ["repos"] and len(parts) >= 3 else ""
+    remaining = e.headers.get("X-RateLimit-Remaining") if e.headers else None
+    if e.code == 429 or (e.code == 403 and remaining == "0"):
+        return ("GitHub API rate limit reached (60 requests/hour without a token). "
+                "Run: export GH_TOKEN=$(gh auth token)   and try again.")
+    if e.code == 401:
+        return "GitHub rejected the token in GH_TOKEN / GITHUB_TOKEN (expired?). Run: export GH_TOKEN=$(gh auth token)"
+    if e.code == 404 and repo:
+        return (f"Repository {repo} was not found on GitHub. Check the owner/name spelling; "
+                "a private repository also needs a token: export GH_TOKEN=$(gh auth token)")
+    return f"GitHub API error {e.code} ({e.reason}) for /{path}"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="ghaudit", description="Score GitHub Actions workflows for supply-chain risks.")
     ap.add_argument("--version", action="version", version=f"ghaudit {__version__}")
@@ -159,7 +178,14 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "exposure":
         a.path_given = a.path is not None
         a.path = a.path or "."
-    return a.func(a)
+    try:
+        return a.func(a)
+    except urllib.error.HTTPError as e:
+        print(f"ghaudit: {github_error(e)}", file=sys.stderr)
+        return 2
+    except urllib.error.URLError as e:
+        print(f"ghaudit: could not reach GitHub ({e.reason}). Check the internet connection.", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

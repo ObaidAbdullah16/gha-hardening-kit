@@ -160,3 +160,33 @@ def test_demo_repo_script_builds_history_with_findings(tmp_path):
     assert [e.incident for e in hist] == ["CVE-2025-30066"]
     log = subprocess.run(["git", "-C", str(repo), "log", "--all", "-p"], capture_output=True, text=True).stdout
     assert "AKIAQZ4DEMONOTREAL7X" in log and "DEMO ONLY" in log
+
+
+# ------------------------------------------------------------------ GitHub API errors
+def _http_error(code, path, headers=None):
+    import email.message
+    import urllib.error
+    msg = email.message.Message()
+    for k, v in (headers or {}).items():
+        msg[k] = v
+    return urllib.error.HTTPError(f"https://api.github.com{path}", code, "error", msg, None)
+
+
+def test_scan_unknown_repo_is_one_line_not_a_traceback(monkeypatch, capsys):
+    import ghaudit.cli as cli
+
+    def missing(repo):
+        raise _http_error(404, f"/repos/{repo}")
+
+    monkeypatch.setattr(cli, "load_github", missing)
+    assert main(["scan", "--repo", "some-org/some-repo"]) == 2
+    err = capsys.readouterr().err
+    assert "Repository some-org/some-repo was not found on GitHub" in err and "Traceback" not in err
+
+
+def test_github_error_messages():
+    from ghaudit.cli import github_error
+
+    assert "rate limit" in github_error(_http_error(403, "/repos/a/b", {"X-RateLimit-Remaining": "0"}))
+    assert "rejected the token" in github_error(_http_error(401, "/repos/a/b"))
+    assert "API error 500" in github_error(_http_error(500, "/repos/a/b/actions/runs?created=x"))
