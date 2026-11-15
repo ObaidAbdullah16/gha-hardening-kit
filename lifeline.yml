@@ -1,0 +1,16 @@
+# Facts Lifeline cannot see from outside. .github/workflows/lifeline.yml scans this repository every Monday.
+# Keep it honest: the score is only as true as this file.
+project: gha-hardening-kit
+security_contact: hello@obaidabdullah.com
+
+backups:
+  - name: source code
+    what: every file of this repository (not the git history, issues or pull requests)
+    location: the Career folder on OneDrive and the laptop's WSL copy; GitHub is published from them
+    isolated: true   # losing the GitHub account does not touch OneDrive
+
+cost:
+  monthly_spend_usd: 0   # GitHub Pages and Actions are free for public repositories
+
+ignore:
+  - LL-COST-002   # no cloud bill, so no billing alerts to configure
